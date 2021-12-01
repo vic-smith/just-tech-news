@@ -1,44 +1,70 @@
-const { Model, DataTypes } = require("sequelize");
-const sequelize = require("../config/connection");
+// import all models
+const Post = require('./Post');
+const User = require('./User');
+const Vote = require('./Vote');
+const Comment = require('./Comment');
 
-class Comment extends Model {}
+// create associations
+User.hasMany(Post, {
+  foreignKey: 'user_id'
+});
 
-Comment.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    comment_text: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        len: [1],
-      },
-    },
-    user_id: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: "user",
-        key: "id",
-      },
-    },
-    post_id: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: "post",
-        key: "id",
-      },
-    },
-  },
-  {
-    sequelize,
-    freezeTableName: true,
-    underscored: true,
-    modelName: "comment",
-  }
-);
+Post.belongsTo(User, {
+  foreignKey: 'user_id',
+  onDelete: 'SET NULL'
+});
 
-module.exports = Comment;
+User.belongsToMany(Post, {
+  through: Vote,
+  as: 'voted_posts',
+
+  foreignKey: 'user_id',
+  onDelete: 'SET NULL'
+});
+
+Post.belongsToMany(User, {
+  through: Vote,
+  as: 'voted_posts',
+  foreignKey: 'post_id',
+  onDelete: 'SET NULL'
+});
+
+Vote.belongsTo(User, {
+  foreignKey: 'user_id',
+  onDelete: 'SET NULL'
+});
+
+Vote.belongsTo(Post, {
+  foreignKey: 'post_id',
+  onDelete: 'SET NULL'
+});
+
+User.hasMany(Vote, {
+  foreignKey: 'user_id'
+});
+
+Post.hasMany(Vote, {
+  foreignKey: 'post_id'
+});
+
+Comment.belongsTo(User, {
+  foreignKey: 'user_id',
+  onDelete: 'SET NULL'
+});
+
+Comment.belongsTo(Post, {
+  foreignKey: 'post_id',
+  onDelete: 'SET NULL'
+});
+
+User.hasMany(Comment, {
+  foreignKey: 'user_id',
+  onDelete: 'SET NULL'
+});
+
+Post.hasMany(Comment, {
+  foreignKey: 'post_id'
+});
+
+module.exports = { User, Post, Vote, Comment };
+
